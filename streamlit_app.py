@@ -1,124 +1,172 @@
 import streamlit as st
 from fpdf import FPDF
 import datetime
+from PIL import Image
+import os
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
-st.set_page_config(page_title="QCD DE MEXICO - Lubricación Pro", layout="wide")
+st.set_page_config(
+    page_title="QCD DE MEXICO - Ingeniería de Lubricación Pro", 
+    page_icon="🛢️", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# --- LÓGICA TÉCNICA ---
+# --- IDENTIDAD CORPORATIVA (Logo y Lema) ---
+# Intentamos cargar el logo oficial
+logo_path = 'image_12.png'
+logo_exists = os.path.exists(logo_path)
+
+st.divider()
+
+col_logo, col_title = st.columns([1, 4])
+
+with col_logo:
+    if logo_exists:
+        image = Image.open(logo_path)
+        st.image(image, width=150)
+    else:
+        st.caption("(Sube image_12.png a tu GitHub)")
+
+with col_title:
+    st.markdown("<h1 style='color: #E30613; margin-top: -15px;'>QCD DE MEXICO - Lubricación Pro</h1>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color: #003366; font-style: italic;'>Una decisión ejecutiva para la eficiencia industrial.</h4>", unsafe_allow_html=True)
+
+st.divider()
+
+# --- LÓGICA TÉCNICA (Cálculos y Matriz) ---
 def calcular_cantidad_grasa(d_exterior, ancho):
+    # Fórmula estándar: G = D * B * 0.005 (en gramos)
     return round(d_exterior * ancho * 0.005, 2)
 
 def calcular_frecuencia(rpm, d_interno, temp):
     dn = rpm * d_interno
-    if dn == 0: return 0
+    if dn <= 0: return 0
+    # Base de cálculo según norma técnica
     base_horas = 14000000 / (dn + 1)
+    # Factor de corrección por temperatura
     if temp > 70:
         reducciones = (temp - 70) / 15
         base_horas = base_horas / (2 ** reducciones)
     return int(base_horas)
 
 def verificar_compatibilidad(esp_actual, esp_nuevo):
+    # Matriz técnica extendida (1: OK, 0: Riesgo, -1: Peligro)
     matriz = {
-        "Litio": {"Litio": 1, "Comp. Litio": 1, "Calcio": 0, "Aluminio": -1, "Poliurea": -1, "Arcilla": -1},
-        "Comp. Litio": {"Litio": 1, "Comp. Litio": 1, "Calcio": 0, "Aluminio": 0, "Poliurea": 0, "Arcilla": -1},
-        "Sulfonato de Calcio": {"Litio": 0, "Comp. Litio": 1, "Calcio": 1, "Aluminio": -1, "Poliurea": 0, "Arcilla": -1},
-        "Poliurea": {"Litio": -1, "Comp. Litio": 0, "Calcio": -1, "Aluminio": -1, "Poliurea": 1, "Arcilla": -1},
-        "Arcilla": {"Litio": -1, "Comp. Litio": -1, "Calcio": -1, "Aluminio": -1, "Poliurea": -1, "Arcilla": 1}
+        "Litio": {"Litio": 1, "Comp. Litio": 1, "Aluminio Comp.": 0, "Bario": -1, "Sodio": -1, "Bentonita": -1, "Poliurea": -1},
+        "Comp. Litio": {"Litio": 1, "Comp. Litio": 1, "Aluminio Comp.": 1, "Bario": 0, "Sodio": 1, "Bentonita": -1, "Poliurea": 1},
+        "Aluminio Comp.": {"Litio": -1, "Comp. Litio": 0, "Aluminio Comp.": 1, "Bario": 0, "Sodio": -1, "Bentonita": -1, "Poliurea": 0},
+        "Bario": {"Litio": -1, "Comp. Litio": -1, "Aluminio Comp.": -1, "Bario": 1, "Sodio": -1, "Bentonita": -1},
+        "Sodio": {"Litio": -1, "Comp. Litio": -1, "Aluminio Comp.": -1, "Sodio": 1, "Bentonita": -1},
+        "Bentonita": {"Litio": -1, "Comp. Litio": -1, "Aluminio Comp.": -1, "Sodio": -1, "Bentonita": 1, "Poliurea": -1},
+        "Poliurea": {"Litio": -1, "Comp. Litio": 1, "Aluminio Comp.": 0, "Poliurea": 1, "Bentonita": -1}
     }
     res = matriz.get(esp_actual, {}).get(esp_nuevo, 0)
-    if res == 1: return "COMPATIBLE", "Mezcla segura. Seguir plan de mantenimiento."
-    if res == 0: return "MEZCLA LIMITADA", "Riesgo de ablandamiento. Se recomienda purga constante."
-    return "INCOMPATIBLE", "¡PELIGRO! Requiere limpieza mecánica total antes de aplicar."
+    
+    if res == 1: return "COMPATIBLE", "La mezcla es segura. Se puede aplicar el producto QCD sobre la grasa anterior.", "#28a745"
+    if res == 0: return "MEZCLA LIMITADA", "Existe riesgo de ablandamiento. Se recomienda purga constante durante la transición.", "#ffc107"
+    return "INCOMPATIBLE", "¡PELIGRO QUÍMICO! Requiere limpieza mecánica total antes de aplicar el producto QCD.", "#dc3545"
 
-# --- GENERADOR DE PDF PROFESIONAL ---
-def generar_pdf_profesional(datos, contacto):
+# --- GENERADOR DE PDF CORPORATIVO CON LOGO ---
+def generar_pdf_corporativo(datos, contacto, logo_exists):
     pdf = FPDF()
     pdf.add_page()
     
-    # Encabezado con Identidad Corporativa
-    pdf.set_font("Arial", 'B', 18)
-    pdf.set_text_color(0, 51, 102) # Azul oscuro profesional
-    pdf.cell(200, 10, txt="QCD DE MEXICO", ln=True, align='C')
+    # Encabezado Corporativo
+    if logo_exists:
+        pdf.image(logo_path, 10, 8, 30) # Logo oficial
+        
+    pdf.set_font("Arial", 'B', 20)
+    pdf.set_text_color(0, 51, 102) # Azul corporativo
+    pdf.cell(195, 15, txt="QCD DE MEXICO", ln=True, align='C')
+    
     pdf.set_font("Arial", 'B', 12)
-    pdf.cell(200, 10, txt="REPORTE TÉCNICO DE LUBRICACIÓN INDUSTRIAL", ln=True, align='C')
-    
-    pdf.set_draw_color(0, 51, 102)
-    pdf.line(10, 32, 200, 32)
-    
-    pdf.ln(10)
     pdf.set_text_color(0, 0, 0)
-    pdf.set_font("Arial", size=10)
-    pdf.cell(200, 10, txt=f"Fecha de Emisión: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}", ln=True, align='R')
+    pdf.cell(195, 10, txt="REPORTE TÉCNICO DE LUBRICACIÓN PROFESIONAL", ln=True, align='C')
+    pdf.set_font("Arial", 'I', 10)
+    pdf.cell(195, 5, txt="\"Una decisión ejecutiva para la eficiencia industrial.\"", ln=True, align='C')
     
-    # Bloques de Información
+    pdf.set_draw_color(227, 6, 19) # Rojo QCD para la línea
+    pdf.line(10, 45, 200, 45)
+    
+    pdf.ln(15)
+    
+    # Datos del Reporte
+    pdf.set_font("Arial", size=9)
+    pdf.cell(190, 8, txt=f"Emitido el: {datetime.datetime.now().strftime('%d/%m/%Y')}", ln=True, align='R')
+    
+    # Secciones del reporte
     for titulo, contenido in datos.items():
         pdf.ln(5)
-        pdf.set_fill_color(230, 230, 230)
+        pdf.set_fill_color(240, 240, 240) # Fondo gris profesional
         pdf.set_font("Arial", 'B', 11)
+        pdf.set_text_color(227, 6, 19) # Rojo QCD
         pdf.cell(0, 8, txt=titulo, ln=True, fill=True)
+        
         pdf.set_font("Arial", size=10)
+        pdf.set_text_color(0, 0, 0)
         for k, v in contenido.items():
-            pdf.cell(0, 7, txt=f" - {k}: {v}", ln=True)
+            pdf.cell(0, 7, txt=f" > {k}: {v}", ln=True)
             
-    # Bloque de Firma y Contacto
+    # Notas Legales y Firma
     pdf.ln(20)
     pdf.set_font("Arial", 'B', 10)
     pdf.cell(95, 10, txt="__________________________", ln=0, align='C')
     pdf.cell(95, 10, txt="__________________________", ln=1, align='C')
-    pdf.cell(95, 5, txt="Firma del Asesor Técnico", ln=0, align='C')
-    pdf.cell(95, 5, txt="Sello de Recibido (Planta)", ln=1, align='C')
+    pdf.cell(95, 5, txt="Asesor Técnico QCD", ln=0, align='C')
+    pdf.cell(95, 5, txt="Recibido Planta (Firma y Sello)", ln=1, align='C')
     
-    pdf.ln(10)
+    pdf.ln(15)
     pdf.set_font("Arial", 'I', 8)
-    pdf.multi_cell(0, 5, txt=f"Contacto QCD DE MEXICO: {contacto}\nAmatlán de los Reyes, Veracruz. Especialistas en Lubricantes Industriales.", align='C')
+    pdf.multi_cell(0, 5, txt=f"Este documento es una guía técnica. Contacto: {contacto}", align='C')
     
     return pdf.output(dest='S').encode('latin-1')
 
-# --- INTERFAZ ---
-st.title("🏭 QCD DE MEXICO - Soluciones en Lubricación")
-st.sidebar.header("Datos de Contacto (Para el PDF)")
-info_contacto = st.sidebar.text_area("Información de contacto:", "ventas@qcdmexico.com | Tel: (271) XXX-XXXX")
+# --- INTERFAZ DE USUARIO ---
+st.sidebar.markdown(f"<div style='text-align: center;'><img src='https://cdn-icons-png.flaticon.com/512/933/933211.png' width='100'></div>", unsafe_allow_html=True)
+st.sidebar.markdown("<h2 style='text-align: center; color: #003366;'>Configuración Técnico-Comercial</h2>", unsafe_allow_html=True)
+info_contacto = st.sidebar.text_area("Datos de Contacto (Amatlán, Veracruz):", "QCD DE MEXICO | Amatlán de los Reyes, Ver. | ventas@qcdmexico.com")
 
-c1, c2 = st.columns(2)
+st.markdown("<h2 style='color: #003366;'>🚀 Portal Técnico QCD Pro</h2>", unsafe_allow_html=True)
 
-with c1:
-    st.subheader("⚙️ Especificaciones Técnicas")
-    equipo = st.text_input("Nombre del Equipo", "Motor Extrusora")
-    d_ext = st.number_input("Diámetro Exterior (mm)", value=110)
-    d_int = st.number_input("Diámetro Interior (mm)", value=45)
-    ancho = st.number_input("Ancho (mm)", value=20)
-    rpm = st.number_input("RPM de Trabajo", value=1750)
-    temp = st.slider("Temp. de Operación (°C)", 20, 150, 65)
+col1, col2 = st.columns(2)
 
-with c2:
-    st.subheader("🧪 Análisis de Grasa")
-    esp_a = st.selectbox("Espesante Actual", ["Litio", "Comp. Litio", "Sulfonato de Calcio", "Poliurea", "Arcilla"])
-    esp_n = st.selectbox("Espesante Nuevo (QCD)", ["Litio", "Comp. Litio", "Sulfonato de Calcio", "Poliurea", "Arcilla"])
-    h1_req = st.toggle("¿Requiere Grado Alimenticio H1?")
+with col1:
+    st.markdown("<h3 style='color: #E30613;'>📋 Especificaciones Técnicas del Rodamiento</h3>", unsafe_allow_html=True)
+    equipo = st.text_input("Identificación / Tag del Equipo", "Motor Extrusora Principal")
+    d_ext = st.number_input("Diámetro Exterior (mm)", value=110, help="D")
+    d_int = st.number_input("Diámetro Interior (mm)", value=45, help="d")
+    ancho = st.number_input("Ancho del Rodamiento (mm)", value=20, help="B")
+    rpm = st.number_input("Régimen de Velocidad (RPM)", value=1750)
+    temp = st.slider("Temperatura de Operación (°C)", 20, 160, 65)
+
+with col2:
+    st.markdown("<h3 style='color: #E30613;'>🔬 Diagnóstico y Recomendación QCD</h3>", unsafe_allow_html=True)
+    esp_lista = ["Litio", "Comp. Litio", "Aluminio Comp.", "Bario", "Sodio", "Bentonita", "Poliurea"]
+    esp_a = st.selectbox("Grasa Actual / Base", esp_lista)
+    esp_n = st.selectbox("Grasa QCD Recomendada", esp_lista)
     
     st.markdown("---")
     g_cant = calcular_cantidad_grasa(d_ext, ancho)
     f_hrs = calcular_frecuencia(rpm, d_int, temp)
-    status, msg = verificar_compatibilidad(esp_a, esp_n)
+    status, msg, color = verificar_compatibilidad(esp_a, esp_n)
     
-    st.metric("Dosis Recomendada", f"{g_cant} g")
-    st.metric("Frecuencia de Re-lubricación", f"{f_hrs} Horas")
+    st.metric("Dosis de Re-lubricación Sugerida", f"{g_cant} g")
+    st.metric("Frecuencia Recomendada", f"{f_hrs} Horas")
     
-    if status == "COMPATIBLE": st.success(status)
-    elif status == "MEZCLA LIMITADA": st.warning(status)
-    else: st.error(status)
+    st.markdown(f"<div style='background-color: {color}; color: white; padding: 10px; border-radius: 5px; font-weight: bold;'>⚠️ {status}: {msg}</div>", unsafe_allow_html=True)
 
-st.markdown("---")
-if st.button("📄 GENERAR REPORTE TÉCNICO QCD"):
-    datos_finales = {
-        "DATOS DEL EQUIPO": {"Identificación": equipo, "Velocidad": f"{rpm} RPM", "Temperatura": f"{temp} C"},
-        "DIMENSIONES FÍSICAS": {"D. Exterior": f"{d_ext} mm", "D. Interior": f"{d_int} mm", "Ancho": f"{ancho} mm"},
-        "RECOMENDACIÓN DE INGENIERÍA": {"Cantidad de Grasa": f"{g_cant} g", "Frecuencia Sugerida": f"{f_hrs} horas"},
-        "PROTOCOLO DE SEGURIDAD": {"Espesante Anterior": esp_a, "Espesante Nuevo": esp_n, "Compatibilidad": status, "Acción": msg}
+st.divider()
+
+if st.button("📄 GENERAR REPORTE TÉCNICO CORPORATIVO Y DESCARGAR PDF"):
+    payload = {
+        "DIAGNÓSTICO TÉCNICO DE LUBRICACIÓN": {"Identificación del Equipo": equipo, "Régimen": f"{rpm} RPM", "Temperatura": f"{temp} °C"},
+        "ESPECIFICACIONES DEL RODAMIENTO": {"Diámetro Exterior": f"{d_ext} mm", "Diámetro Interior": f"{d_int} mm", "Ancho (Dimesión)": f"{ancho} mm"},
+        "RECOMENDACIONES DE INGENIERÍA QCD": {"Dosis de Grasa QCD": f"{g_cant} g", "Frecuencia Sugerida": f"{f_hrs} horas"},
+        "ANÁLISIS DE SEGURIDAD OPERATIVA": {"Espesante Anterior": esp_a, "Espesante Nuevo QCD": esp_n, "Resultado": status, "Protocolo Técnico": msg}
     }
-    pdf_bytes = generar_pdf_profesional(datos_finales, info_contacto)
-    st.download_button("📥 Descargar Reporte PDF", data=pdf_bytes, file_name=f"Reporte_Tecnico_{equipo}.pdf")
+    pdf_out = generar_pdf_corporativo(payload, info_contacto, logo_exists)
+    st.download_button("📥 Descargar Reporte PDF Profesional para Cliente", data=pdf_out, file_name=f"Reporte_Tecnico_{equipo}.pdf", mime="application/pdf")
 
-st.sidebar.write("---")
-st.sidebar.caption("Basado en normas DIN 51502 / ISO 6743-9")
+st.divider()
+st.caption("Herramienta exclusiva para uso técnico-comercial de QCD DE MEXICO. Basado en normas técnicas internacionales de lubricación (DIN/ISO).")
