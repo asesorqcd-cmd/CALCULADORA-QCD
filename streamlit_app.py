@@ -14,7 +14,7 @@ st.set_page_config(
 
 # --- IDENTIDAD CORPORATIVA (Logo y Lema) ---
 # Intentamos cargar el logo oficial
-logo_path = 'image_12.png'
+logo_path = 'Logo-QCD (2).png'
 logo_exists = os.path.exists(logo_path)
 
 st.divider()
