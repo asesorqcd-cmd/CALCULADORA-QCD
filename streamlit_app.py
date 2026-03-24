@@ -6,15 +6,15 @@ import os
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(
-    page_title="QCD DE MEXICO - Ingeniería de Lubricación Pro", 
-    page_icon="🛢️", 
+    page_title="Reporte Técnico de Lubricación Industrial - QCD DE MEXICO", 
+    page_icon="⚙️", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- IDENTIDAD CORPORATIVA (Logo y Lema) ---
+# --- IDENTIDAD CORPORATIVA (Logo y Título) ---
 # Intentamos cargar el logo oficial
-logo_path = 'Logo-QCD (2).png'
+logo_path = 'image_12.png'
 logo_exists = os.path.exists(logo_path)
 
 st.divider()
@@ -26,11 +26,15 @@ with col_logo:
         image = Image.open(logo_path)
         st.image(image, width=150)
     else:
-        st.caption("(Sube image_12.png a tu GitHub)")
+        # Mensaje técnico para el desarrollador si no encuentra el logo
+        st.caption("(Sube image_12.png a tu GitHub/Space)")
 
 with col_title:
-    st.markdown("<h1 style='color: #E30613; margin-top: -15px;'>QCD DE MEXICO - Lubricación Pro</h1>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color: #003366; font-style: italic;'>Una decisión ejecutiva para la eficiencia industrial.</h4>", unsafe_allow_html=True)
+    # TÍTULO SOLICITADO
+    st.markdown("<h1 style='color: #003366; margin-top: -15px;'>REPORTE TÉCNICO DE LUBRICACIÓN INDUSTRIAL</h1>", unsafe_allow_html=True)
+    # LEMA Corporativo
+    st.markdown("<h4 style='color: #E30613; font-style: italic;'>Una decisión ejecutiva para la eficiencia industrial.</h4>", unsafe_allow_html=True)
+    st.caption("Desarrollado exclusivamente para QCD DE MEXICO")
 
 st.divider()
 
@@ -44,7 +48,7 @@ def calcular_frecuencia(rpm, d_interno, temp):
     if dn <= 0: return 0
     # Base de cálculo según norma técnica
     base_horas = 14000000 / (dn + 1)
-    # Factor de corrección por temperatura
+    # Factor de corrección por temperatura (Regla de Arrhenius)
     if temp > 70:
         reducciones = (temp - 70) / 15
         base_horas = base_horas / (2 ** reducciones)
@@ -76,24 +80,23 @@ def generar_pdf_corporativo(datos, contacto, logo_exists):
     if logo_exists:
         pdf.image(logo_path, 10, 8, 30) # Logo oficial
         
-    pdf.set_font("Arial", 'B', 20)
+    pdf.set_font("Arial", 'B', 16)
     pdf.set_text_color(0, 51, 102) # Azul corporativo
-    pdf.cell(195, 15, txt="QCD DE MEXICO", ln=True, align='C')
+    pdf.cell(195, 10, txt="REPORTE TÉCNICO DE LUBRICACIÓN INDUSTRIAL", ln=True, align='C')
     
-    pdf.set_font("Arial", 'B', 12)
-    pdf.set_text_color(0, 0, 0)
-    pdf.cell(195, 10, txt="REPORTE TÉCNICO DE LUBRICACIÓN PROFESIONAL", ln=True, align='C')
     pdf.set_font("Arial", 'I', 10)
-    pdf.cell(195, 5, txt="\"Una decisión ejecutiva para la eficiencia industrial.\"", ln=True, align='C')
+    pdf.set_text_color(128, 128, 128) # Gris
+    pdf.cell(195, 5, txt="QCD DE MEXICO - \"Una decisión ejecutiva para la eficiencia industrial.\"", ln=True, align='C')
     
     pdf.set_draw_color(227, 6, 19) # Rojo QCD para la línea
-    pdf.line(10, 45, 200, 45)
+    pdf.line(10, 35, 200, 35)
     
-    pdf.ln(15)
+    pdf.ln(10)
     
     # Datos del Reporte
     pdf.set_font("Arial", size=9)
-    pdf.cell(190, 8, txt=f"Emitido el: {datetime.datetime.now().strftime('%d/%m/%Y')}", ln=True, align='R')
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(190, 8, txt=f"Fecha de Emisión: {datetime.datetime.now().strftime('%d/%m/%Y')}", ln=True, align='R')
     
     # Secciones del reporte
     for titulo, contenido in datos.items():
@@ -123,16 +126,19 @@ def generar_pdf_corporativo(datos, contacto, logo_exists):
     return pdf.output(dest='S').encode('latin-1')
 
 # --- INTERFAZ DE USUARIO ---
-st.sidebar.markdown(f"<div style='text-align: center;'><img src='https://cdn-icons-png.flaticon.com/512/933/933211.png' width='100'></div>", unsafe_allow_html=True)
-st.sidebar.markdown("<h2 style='text-align: center; color: #003366;'>Configuración Técnico-Comercial</h2>", unsafe_allow_html=True)
-info_contacto = st.sidebar.text_area("Datos de Contacto (Amatlán, Veracruz):", "QCD DE MEXICO | Amatlán de los Reyes, Ver. | ventas@qcdmexico.com")
+# Sidebar profesional
+st.sidebar.markdown(f"<div style='text-align: center;'><img src='https://cdn-icons-png.flaticon.com/512/933/933211.png' width='80'></div>", unsafe_allow_html=True)
+st.sidebar.markdown("<h3 style='text-align: center; color: #003366;'>Ajustes del Reporte</h3>", unsafe_allow_html=True)
+info_contacto = st.sidebar.text_area("Datos de Contacto (Para el PDF):", "Amatlán de los Reyes, Ver. | ventas@qcdmexico.com")
+st.sidebar.write("---")
+st.sidebar.caption("Normas técnicas de referencia: DIN 51502 / ISO 6743-9")
 
-st.markdown("<h2 style='color: #003366;'>🚀 Portal Técnico QCD Pro</h2>", unsafe_allow_html=True)
-
+# Panel Principal
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("<h3 style='color: #E30613;'>📋 Especificaciones Técnicas del Rodamiento</h3>", unsafe_allow_html=True)
+    # ICONO DE ENGRANES SOLICITADO
+    st.markdown("<h3 style='color: #003366;'>⚙️ Especificaciones Técnicas del Rodamiento</h3>", unsafe_allow_html=True)
     equipo = st.text_input("Identificación / Tag del Equipo", "Motor Extrusora Principal")
     d_ext = st.number_input("Diámetro Exterior (mm)", value=110, help="D")
     d_int = st.number_input("Diámetro Interior (mm)", value=45, help="d")
@@ -141,7 +147,8 @@ with col1:
     temp = st.slider("Temperatura de Operación (°C)", 20, 160, 65)
 
 with col2:
-    st.markdown("<h3 style='color: #E30613;'>🔬 Diagnóstico y Recomendación QCD</h3>", unsafe_allow_html=True)
+    # ICONO DE PALOMITA SOLICITADO
+    st.markdown("<h3 style='color: #003366;'>✅ Diagnóstico y Recomendación QCD</h3>", unsafe_allow_html=True)
     esp_lista = ["Litio", "Comp. Litio", "Aluminio Comp.", "Bario", "Sodio", "Bentonita", "Poliurea"]
     esp_a = st.selectbox("Grasa Actual / Base", esp_lista)
     esp_n = st.selectbox("Grasa QCD Recomendada", esp_lista)
@@ -158,15 +165,15 @@ with col2:
 
 st.divider()
 
-if st.button("📄 GENERAR REPORTE TÉCNICO CORPORATIVO Y DESCARGAR PDF"):
+if st.button("📄 GENERAR REPORTE PROFESIONAL Y DESCARGAR PDF"):
     payload = {
         "DIAGNÓSTICO TÉCNICO DE LUBRICACIÓN": {"Identificación del Equipo": equipo, "Régimen": f"{rpm} RPM", "Temperatura": f"{temp} °C"},
-        "ESPECIFICACIONES DEL RODAMIENTO": {"Diámetro Exterior": f"{d_ext} mm", "Diámetro Interior": f"{d_int} mm", "Ancho (Dimesión)": f"{ancho} mm"},
+        "ESPECIFICACIONES DEL RODAMIENTO": {"Diámetro Exterior": f"{d_ext} mm", "Diámetro Interior": f"{d_int} mm", "Ancho (Dimensiones)": f"{ancho} mm"},
         "RECOMENDACIONES DE INGENIERÍA QCD": {"Dosis de Grasa QCD": f"{g_cant} g", "Frecuencia Sugerida": f"{f_hrs} horas"},
         "ANÁLISIS DE SEGURIDAD OPERATIVA": {"Espesante Anterior": esp_a, "Espesante Nuevo QCD": esp_n, "Resultado": status, "Protocolo Técnico": msg}
     }
     pdf_out = generar_pdf_corporativo(payload, info_contacto, logo_exists)
-    st.download_button("📥 Descargar Reporte PDF Profesional para Cliente", data=pdf_out, file_name=f"Reporte_Tecnico_{equipo}.pdf", mime="application/pdf")
+    st.download_button("📥 Descargar Reporte PDF para Cliente", data=pdf_out, file_name=f"Reporte_Tecnico_{equipo}.pdf", mime="application/pdf")
 
 st.divider()
-st.caption("Herramienta exclusiva para uso técnico-comercial de QCD DE MEXICO. Basado en normas técnicas internacionales de lubricación (DIN/ISO).")
+st.caption("Herramienta de uso exclusivo para QCD DE MEXICO. © 2026. Basado en estándares de ingeniería.")
