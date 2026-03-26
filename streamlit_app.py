@@ -194,7 +194,7 @@ h1_status = "SÍ (NSF H1)" if es_h1 else "NO"
 pdf_data = generar_pdf_compacto(equipo, rpm, temp, grado_nlgi, h1_status, g_cant, f_hrs, esp_a, esp_n, status, info_contacto, logo_exists, obs)
 
 st.download_button(
-    label="📥 DESCARGAR REPORTE (1 HOJA)",
+    label="📥 DESCARGAR REPORTE ",
     data=pdf_data,
     file_name=f"Reporte_{equipo}.pdf",
     mime="application/pdf"
