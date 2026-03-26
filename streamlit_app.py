@@ -6,10 +6,9 @@ import os
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(
-    page_title="Reporte Técnico de Lubricación Industrial - QCD DE MEXICO", 
+    page_title="Reporte Técnico - QCD DE MEXICO", 
     page_icon="⚙️", 
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 # --- IDENTIDAD CORPORATIVA ---
@@ -20,14 +19,13 @@ st.divider()
 col_logo, col_title = st.columns([1, 4])
 with col_logo:
     if logo_exists:
-        st.image(Image.open(logo_path), width=150)
+        st.image(Image.open(logo_path), width=100)
     else:
-        st.warning("⚠️ Logo no detectado: Logo-QCD (2).png")
+        st.warning("⚠️ Logo no detectado")
 
 with col_title:
-    st.markdown("<h1 style='color: #003366; margin-top: -15px;'>REPORTE TÉCNICO DE LUBRICACIÓN INDUSTRIAL</h1>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color: #E30613; font-style: italic;'>Una decisión ejecutiva para la eficiencia industrial.</h4>", unsafe_allow_html=True)
-st.divider()
+    st.markdown("<h2 style='color: #003366; margin-top: -15px;'>REPORTE TÉCNICO DE LUBRICACIÓN INDUSTRIAL</h2>", unsafe_allow_html=True)
+    st.markdown("<h5 style='color: #E30613; font-style: italic;'>QCD DE MÉXICO - Ingeniería de alto desempeño</h5>", unsafe_allow_html=True)
 
 # --- LÓGICA TÉCNICA ---
 def calcular_cantidad_grasa(d_ext, ancho):
@@ -42,7 +40,7 @@ def calcular_frecuencia(rpm, d_int, temp):
         base_horas = base_horas / (2 ** reducciones)
     return int(base_horas)
 
-def verificar_compatibilidad(esp_a, esp_n, h1_solicitado):
+def verificar_compatibilidad(esp_a, esp_n, h1):
     matriz = {
         "Litio": {"Litio": 1, "Comp. Litio": 1, "Alum. Comp.": 0, "Bario": -1, "Sodio": -1, "Bentonita": -1, "Poliurea": -1, "Sulf. Calcio": 0},
         "Comp. Litio": {"Litio": 1, "Comp. Litio": 1, "Alum. Comp.": 1, "Bario": 0, "Sodio": 1, "Bentonita": -1, "Poliurea": 1, "Sulf. Calcio": 1},
@@ -54,114 +52,87 @@ def verificar_compatibilidad(esp_a, esp_n, h1_solicitado):
         "Sulf. Calcio": {"Litio": 0, "Comp. Litio": 1, "Alum. Comp.": 0, "Bario": -1, "Sodio": -1, "Bentonita": -1, "Poliurea": 1, "Sulf. Calcio": 1}
     }
     res = matriz.get(esp_a, {}).get(esp_n, 0)
-    alerta_h1 = ""
-    if h1_solicitado and esp_n not in ["Alum. Comp.", "Sulf. Calcio"]:
-        alerta_h1 = " / Verificar registro NSF H1."
-    elif h1_solicitado:
-        alerta_h1 = " / Producto Grado H1 Confirmado."
-
+    alerta_h1 = " / H1 Confirmado" if h1 else ""
     if res == 1: return "COMPATIBLE", f"Mezcla segura{alerta_h1}", "#28a745"
-    if res == 0: return "MEZCLA LIMITADA", f"Riesgo de ablandamiento. Purga necesaria{alerta_h1}", "#ffc107"
-    return "INCOMPATIBLE", f"¡PELIGRO! Limpieza total requerida{alerta_h1}", "#dc3545"
+    if res == 0: return "LIMITADA", f"Purga necesaria{alerta_h1}", "#ffc107"
+    return "INCOMPATIBLE", f"Limpieza requerida{alerta_h1}", "#dc3545"
 
-# --- DISEÑO COMPACTO (UNA SOLA HOJA) ---
-def generar_pdf_compacto(equipo, rpm, temp, nlgi, h1_val, g_cant, f_hrs, esp_a, esp_n, status, contacto, logo_on, observaciones):
+# --- GENERACIÓN DE PDF COMPACTO ---
+def generar_pdf_ultra_compacto(equipo, rpm, temp, nlgi, h1, g_cant, f_hrs, esp_a, esp_n, status, obs):
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_margins(10, 10, 10)
+    pdf.set_margins(12, 10, 12)
     
-    # 1. ENCABEZADO
-    if logo_on:
-        pdf.image(logo_path, 10, 10, 35)
+    # Encabezado Compacto
+    if logo_exists:
+        pdf.image(logo_path, 12, 10, 28)
     
     pdf.set_font("Arial", 'B', 14)
     pdf.set_text_color(0, 51, 102)
-    pdf.cell(0, 8, txt="REPORTE TÉCNICO DE INGENIERÍA", ln=True, align='R')
-    pdf.set_font("Arial", 'B', 10)
+    pdf.cell(0, 7, txt="REPORTE TÉCNICO DE LUBRICACIÓN", ln=True, align='R')
+    pdf.set_font("Arial", 'B', 9)
     pdf.set_text_color(227, 6, 19)
-    pdf.cell(0, 5, txt="QCD DE MÉXICO", ln=True, align='R')
-    pdf.set_font("Arial", 'I', 8)
-    pdf.set_text_color(100, 100, 100)
-    pdf.cell(0, 5, txt="Una decisión ejecutiva para la eficiencia industrial.", ln=True, align='R')
+    pdf.cell(0, 4, txt="QCD DE MÉXICO", ln=True, align='R')
     
     pdf.set_draw_color(227, 6, 19)
-    pdf.set_line_width(0.5)
-    pdf.line(10, 35, 200, 35)
-    pdf.ln(8)
+    pdf.line(12, 28, 198, 28)
+    pdf.ln(6)
     
-    # 2. INFORMACIÓN GENERAL
+    # Bloque 1: Datos
     pdf.set_fill_color(240, 240, 240)
-    pdf.set_font("Arial", 'B', 9)
-    pdf.set_text_color(0, 51, 102)
-    pdf.cell(0, 6, txt="  DATOS OPERATIVOS DEL EQUIPO", ln=True, fill=True)
-    pdf.ln(1)
-    
-    pdf.set_font("Arial", '', 9)
-    pdf.set_text_color(0, 0, 0)
-    col_width = 90
-    pdf.cell(col_width, 6, txt=f" > Equipo: {equipo}", ln=0)
-    pdf.cell(col_width, 6, txt=f" > Fecha: {datetime.datetime.now().strftime('%d/%m/%Y')}", ln=1)
-    pdf.cell(col_width, 6, txt=f" > Velocidad: {rpm} RPM", ln=0)
-    pdf.cell(col_width, 6, txt=f" > Temperatura: {temp} C", ln=1)
-    pdf.cell(col_width, 6, txt=f" > Consistencia NLGI: {nlgi}", ln=0)
-    pdf.cell(col_width, 6, txt=f" > Grado Alimenticio H1: {h1_val}", ln=1)
-    pdf.ln(4)
-
-    # 3. RECOMENDACIÓN QCD (TABLA COMPACTA)
-    pdf.set_fill_color(0, 51, 102)
-    pdf.set_font("Arial", 'B', 9)
-    pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 6, txt="  RECOMENDACIÓN TÉCNICA QCD", ln=True, fill=True)
-    pdf.ln(2)
-    
-    pdf.set_font("Arial", 'B', 11)
-    pdf.set_text_color(227, 6, 19)
-    pdf.cell(col_width, 8, txt=f" DOSIS: {g_cant} g", ln=0)
-    pdf.cell(col_width, 8, txt=f" FRECUENCIA: {f_hrs} Horas", ln=1)
-    
-    pdf.set_font("Arial", '', 9)
-    pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 6, txt=f" > Grasa Actual: {esp_a}", ln=True)
-    pdf.cell(0, 6, txt=f" > Producto QCD Sugerido: {esp_n}", ln=True)
-    pdf.set_font("Arial", 'B', 9)
-    pdf.cell(0, 6, txt=f" > Compatibilidad: {status}", ln=True)
-    pdf.ln(4)
-
-    # 4. OBSERVACIONES (Limitado para asegurar una hoja)
-    if observaciones:
-        pdf.set_fill_color(240, 240, 240)
-        pdf.set_font("Arial", 'B', 9)
-        pdf.set_text_color(0, 51, 102)
-        pdf.cell(0, 6, txt="  NOTAS TÉCNICAS", ln=True, fill=True)
-        pdf.ln(1)
-        pdf.set_font("Arial", '', 8)
-        pdf.set_text_color(0, 0, 0)
-        pdf.multi_cell(0, 4, txt=observaciones[:400]) # Límite de caracteres para no desbordar
-        pdf.ln(4)
-
-    # 5. FIRMAS (Compactas)
-    pdf.set_y(-40) # Ajustado más arriba para evitar salto de página
     pdf.set_font("Arial", 'B', 8)
-    pdf.cell(95, 8, txt="_______________________", ln=0, align='C')
-    pdf.cell(95, 8, txt="_______________________", ln=1, align='C')
-    pdf.cell(95, 4, txt="Asesor Técnico QCD", ln=0, align='C')
-    pdf.cell(95, 4, txt="Firma / Sello Planta", ln=1, align='C')
+    pdf.set_text_color(0, 51, 102)
+    pdf.cell(0, 5, txt="  DATOS DEL EQUIPO", ln=True, fill=True)
+    pdf.set_font("Arial", '', 8)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(93, 5, txt=f" > Equipo: {equipo} | RPM: {rpm}", ln=0)
+    pdf.cell(93, 5, txt=f" > Fecha: {datetime.datetime.now().strftime('%d/%m/%Y')}", ln=1)
+    pdf.cell(93, 5, txt=f" > Temp: {temp} C | NLGI: {nlgi}", ln=0)
+    pdf.cell(93, 5, txt=f" > Grado H1: {'SÍ' if h1 else 'NO'}", ln=1)
     
-    pdf.set_y(-15)
-    pdf.set_font("Arial", 'I', 7)
-    pdf.set_text_color(150, 150, 150)
-    pdf.cell(0, 4, txt=f"{contacto}", ln=True, align='C')
+    # Bloque 2: Recomendación
+    pdf.ln(2)
+    pdf.set_fill_color(0, 51, 102)
+    pdf.set_font("Arial", 'B', 8)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(0, 5, txt="  DIAGNÓSTICO QCD", ln=True, fill=True)
+    pdf.set_font("Arial", 'B', 10)
+    pdf.set_text_color(227, 6, 19)
+    pdf.cell(93, 7, txt=f" DOSIS: {g_cant} g", ln=0)
+    pdf.cell(93, 7, txt=f" FRECUENCIA: {f_hrs} Horas", ln=1)
+    pdf.set_font("Arial", '', 8)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 5, txt=f" > Compatibilidad: {status} ({esp_a} >> {esp_n})", ln=True)
+
+    # Bloque 3: Notas
+    if obs:
+        pdf.ln(2)
+        pdf.set_font("Arial", 'B', 8)
+        pdf.cell(0, 5, txt="  OBSERVACIONES:", ln=True)
+        pdf.set_font("Arial", '', 7)
+        pdf.multi_cell(0, 3.5, txt=obs[:600])
+
+    # Bloque 4: FIRMAS SUBIDAS
+    pdf.set_y(-35) # Posición más alta para asegurar una hoja
+    pdf.set_font("Arial", 'B', 8)
+    pdf.cell(93, 5, txt="_______________________", ln=0, align='C')
+    pdf.cell(93, 5, txt="_______________________", ln=1, align='C')
+    pdf.cell(93, 4, txt="Asesor Técnico QCD", ln=0, align='C')
+    pdf.cell(93, 4, txt="Firma de Planta", ln=1, align='C')
+    
+    # Información de contacto compacta bajo la firma
+    pdf.set_font("Arial", '', 7)
+    pdf.set_text_color(100, 100, 100)
+    pdf.cell(93, 3, txt="Tel: 271 114 3337", ln=0, align='C')
+    pdf.cell(93, 3, txt="Amatlán de los Reyes, Ver.", ln=1, align='R')
+    pdf.cell(93, 3, txt="ventas.qcdmexico@gmail.com", ln=0, align='C')
     
     return pdf.output(dest='S').encode('latin-1')
 
-# --- INTERFAZ STREAMLIT ---
-st.sidebar.header("Configuración de Reporte")
-info_contacto = st.sidebar.text_area("Datos contacto:", "QCD DE MÉXICO | Amatlán de los Reyes, Ver. | ventas@qcdmexico.com")
-
+# --- INTERFAZ APP ---
 col1, col2 = st.columns(2)
 with col1:
-    st.markdown("<h3 style='color: #003366;'>⚙️ Datos Técnicos</h3>", unsafe_allow_html=True)
-    equipo = st.text_input("Equipo", "Motor Extrusora #1")
+    equipo = st.text_input("Equipo", "Motor Principal")
     d_ext = st.number_input("D. Exterior (mm)", value=110)
     d_int = st.number_input("D. Interior (mm)", value=45)
     ancho = st.number_input("Ancho (mm)", value=20)
@@ -169,33 +140,20 @@ with col1:
     temp = st.slider("Temp. Operación (°C)", 20, 150, 60)
 
 with col2:
-    st.markdown("<h3 style='color: #003366;'>✅ Configuración QCD</h3>", unsafe_allow_html=True)
-    ca, cb = st.columns(2)
-    with ca: es_h1 = st.toggle("H1 Alimenticio")
-    with cb: grado_nlgi = st.select_slider("NLGI", options=["000", "00", "0", "1", "2", "3"], value="2")
-    
+    es_h1 = st.toggle("H1 Alimenticio")
+    grado_nlgi = st.select_slider("NLGI", options=["000", "00", "0", "1", "2", "3"], value="2")
     esp_lista = ["Litio", "Comp. Litio", "Alum. Comp.", "Bario", "Sodio", "Bentonita", "Poliurea", "Sulf. Calcio"]
-    esp_a = st.selectbox("Espesante Actual", esp_lista)
-    esp_n = st.selectbox("Espesante QCD", esp_lista)
+    esp_a = st.selectbox("Grasa Actual", esp_lista)
+    esp_n = st.selectbox("Grasa QCD", esp_lista)
     
     g_cant = calcular_cantidad_grasa(d_ext, ancho)
     f_hrs = calcular_frecuencia(rpm, d_int, temp)
     status, msg, color = verificar_compatibilidad(esp_a, esp_n, es_h1)
     
-    st.metric("Dosis", f"{g_cant} g")
-    st.metric("Frecuencia", f"{f_hrs} h")
-    st.markdown(f"<div style='background-color: {color}; color: white; padding: 10px; border-radius: 5px; font-weight: bold;'>{status}: {msg}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='background-color: {color}; color: white; padding: 10px; border-radius: 5px; text-align: center;'><b>{status}: {msg}</b></div>", unsafe_allow_html=True)
 
-st.divider()
-obs = st.text_area("Observaciones técnicas (Aparecerán en el PDF):", placeholder="Ej: Se detectó contaminación por agua en el rodamiento...")
+obs = st.text_area("Notas técnicas:")
 
-# --- GENERACIÓN ---
-h1_status = "SÍ (NSF H1)" if es_h1 else "NO"
-pdf_data = generar_pdf_compacto(equipo, rpm, temp, grado_nlgi, h1_status, g_cant, f_hrs, esp_a, esp_n, status, info_contacto, logo_exists, obs)
-
-st.download_button(
-    label="📥 DESCARGAR REPORTE ",
-    data=pdf_data,
-    file_name=f"Reporte_{equipo}.pdf",
-    mime="application/pdf"
-)
+if st.button("📥 GENERAR PDF "):
+    pdf_bytes = generar_pdf_ultra_compacto(equipo, rpm, temp, grado_nlgi, es_h1, g_cant, f_hrs, esp_a, esp_n, status, obs)
+    st.download_button("Descargar Reporte", data=pdf_bytes, file_name=f"QCD_{equipo}.pdf", mime="application/pdf")
