@@ -168,6 +168,6 @@ with col2:
 
 obs = st.text_area("Observaciones para el reporte:")
 
-if st.button("🚀 GENERAR REPORTE FINAL (1 HOJA)"):
+if st.button("🚀 GENERAR REPORTE FINAL"):
     pdf_bytes = generar_pdf_ultra_compacto(equipo, rpm, temp, grado_nlgi, es_h1, g_cant, f_hrs, esp_a, esp_n, status, obs)
     st.download_button("📥 Descargar Reporte PDF", data=pdf_bytes, file_name=f"QCD_Reporte_{equipo}.pdf", mime="application/pdf")
