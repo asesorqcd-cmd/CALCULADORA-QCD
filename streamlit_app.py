@@ -20,7 +20,7 @@ st.divider()
 col_logo, col_title = st.columns([1, 4])
 with col_logo:
     if logo_exists:
-        st.image(Image.open(logo_path), width=150)
+        st.image(Image.open(logo_path), width=110)
     else:
         st.warning("⚠️ Logo no detectado: Logo-QCD (2).png")
 
@@ -56,106 +56,116 @@ def verificar_compatibilidad(esp_a, esp_n, h1_solicitado):
     res = matriz.get(esp_a, {}).get(esp_n, 0)
     alerta_h1 = ""
     if h1_solicitado and esp_n not in ["Alum. Comp.", "Sulf. Calcio"]:
-        alerta_h1 = "\n⚠️ NOTA: Verificar registro NSF H1 del producto QCD."
+        alerta_h1 = " / Verificar registro H1."
     elif h1_solicitado:
-        alerta_h1 = "\n✅ PRODUCTO H1: Grado alimenticio confirmado."
+        alerta_h1 = " / Producto H1 Confirmado."
 
     if res == 1: return "COMPATIBLE", f"Mezcla segura.{alerta_h1}", "#28a745"
     if res == 0: return "MEZCLA LIMITADA", f"Riesgo de ablandamiento. Purga necesaria.{alerta_h1}", "#ffc107"
     return "INCOMPATIBLE", f"¡PELIGRO! Limpieza total requerida.{alerta_h1}", "#dc3545"
 
-# --- DISEÑO MEJORADO DE PDF ---
+# --- DISEÑO ULTRA COMPACTO (GARANTIZA 1 HOJA) ---
 def generar_pdf_v2(equipo, rpm, temp, nlgi, h1_val, g_cant, f_hrs, esp_a, esp_n, status, contacto, logo_on, observaciones):
     pdf = FPDF()
     pdf.add_page()
+    pdf.set_margins(10, 10, 10)
     
-    # 1. ENCABEZADO Y LOGO
+    # 1. ENCABEZADO Y LOGO (25MM)
     if logo_on:
-        pdf.image(logo_path, 10, 10, 38)
+        pdf.image(logo_path, 10, 10, 25)
     
-    pdf.set_font("Arial", 'B', 16)
+    pdf.set_font("Arial", 'B', 13)
     pdf.set_text_color(0, 51, 102) # Azul Marino
-    pdf.cell(0, 10, txt="REPORTE TÉCNICO DE INGENIERÍA", ln=True, align='R')
-    pdf.set_font("Arial", 'B', 11)
+    pdf.cell(0, 6, txt="REPORTE TÉCNICO DE LUBRICACIÓN INDUSTRIAL", ln=True, align='R')
+    pdf.set_font("Arial", 'B', 9)
     pdf.set_text_color(227, 6, 19) # Rojo QCD
-    pdf.cell(0, 5, txt="QCD DE MÉXICO", ln=True, align='R')
-    pdf.set_font("Arial", 'I', 9)
+    pdf.cell(0, 4, txt="QCD DE MÉXICO", ln=True, align='R')
+    pdf.set_font("Arial", 'I', 7.5)
     pdf.set_text_color(100, 100, 100)
-    pdf.cell(0, 5, txt="Una decisión ejecutiva para la eficiencia industrial.", ln=True, align='R')
+    pdf.cell(0, 4, txt="Una decisión ejecutiva para la eficiencia industrial.", ln=True, align='R')
     
     pdf.set_draw_color(227, 6, 19)
-    pdf.set_line_width(0.8)
-    pdf.line(10, 40, 200, 40)
-    pdf.ln(12)
+    pdf.set_line_width(0.5)
+    pdf.line(10, 27, 200, 27)
+    pdf.ln(5)
     
     # 2. INFORMACIÓN GENERAL (TABLA GRIS)
     pdf.set_fill_color(245, 245, 245)
-    pdf.set_font("Arial", 'B', 10)
+    pdf.set_font("Arial", 'B', 8.5)
     pdf.set_text_color(0, 51, 102)
-    pdf.cell(0, 8, txt="  DETALLES DEL EQUIPO Y CONDICIONES OPERATIVAS", ln=True, fill=True)
-    pdf.ln(2)
+    pdf.cell(0, 5, txt="  DETALLES DEL EQUIPO Y CONDICIONES OPERATIVAS", ln=True, fill=True)
+    pdf.ln(1)
     
-    pdf.set_font("Arial", '', 10)
+    pdf.set_font("Arial", '', 8.5)
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(95, 7, txt=f" > Equipo: {equipo}", ln=0)
-    pdf.cell(95, 7, txt=f" > Fecha: {datetime.datetime.now().strftime('%d/%m/%Y')}", ln=1)
-    pdf.cell(95, 7, txt=f" > Velocidad: {rpm} RPM", ln=0)
-    pdf.cell(95, 7, txt=f" > Temperatura: {temp} C", ln=1)
-    pdf.cell(95, 7, txt=f" > Consistencia NLGI: {nlgi}", ln=0)
-    pdf.cell(95, 7, txt=f" > Grado Alimenticio H1: {h1_val}", ln=1)
-    pdf.ln(5)
+    pdf.cell(95, 5, txt=f" > Equipo: {equipo}", ln=0)
+    pdf.cell(95, 5, txt=f" > Fecha de Emisión: {datetime.datetime.now().strftime('%d/%m/%Y')}", ln=1)
+    pdf.cell(95, 5, txt=f" > Velocidad: {rpm} RPM", ln=0)
+    pdf.cell(95, 5, txt=f" > Temperatura de Operación: {temp} C", ln=1)
+    pdf.cell(95, 5, txt=f" > Consistencia NLGI: {nlgi}", ln=0)
+    pdf.cell(95, 5, txt=f" > Grado Alimenticio H1: {h1_val}", ln=1)
+    pdf.ln(3)
 
     # 3. RECOMENDACIÓN TÉCNICA (CAJA DESTACADA)
     pdf.set_fill_color(0, 51, 102)
-    pdf.set_font("Arial", 'B', 10)
+    pdf.set_font("Arial", 'B', 8.5)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(0, 8, txt="  PROPUESTA DE LUBRICACIÓN QCD", ln=True, fill=True)
-    pdf.ln(2)
+    pdf.cell(0, 5, txt="  PROPUESTA DE LUBRICACIÓN QCD", ln=True, fill=True)
+    pdf.ln(1.5)
     
-    pdf.set_font("Arial", 'B', 12)
+    pdf.set_font("Arial", 'B', 10.5)
     pdf.set_text_color(227, 6, 19)
-    pdf.cell(95, 10, txt=f" CANTIDAD: {g_cant} g", ln=0)
-    pdf.cell(95, 10, txt=f" FRECUENCIA: {f_hrs} Horas", ln=1)
+    pdf.cell(95, 7, txt=f" CANTIDAD DE GRASA: {g_cant} g", ln=0)
+    pdf.cell(95, 7, txt=f" FRECUENCIA RECOMENDADA: {f_hrs} Horas", ln=1)
     
-    pdf.set_font("Arial", '', 10)
+    pdf.set_font("Arial", '', 8.5)
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 7, txt=f" > Producto Anterior: {esp_a}", ln=True)
-    pdf.cell(0, 7, txt=f" > Producto Sugerido QCD: {esp_n}", ln=True)
-    pdf.set_font("Arial", 'B', 10)
-    pdf.cell(0, 7, txt=f" > Estatus de Compatibilidad: {status}", ln=True)
-    pdf.ln(5)
+    pdf.cell(0, 5, txt=f" > Producto / Espesante Anterior: {esp_a}", ln=True)
+    pdf.cell(0, 5, txt=f" > Producto / Espesante Sugerido QCD: {esp_n}", ln=True)
+    pdf.set_font("Arial", 'B', 8.5)
+    pdf.cell(0, 5, txt=f" > Estatus de Compatibilidad: {status}", ln=True)
+    pdf.ln(3)
 
-    # 4. OBSERVACIONES PERSONALIZADAS
+    # 4. OBSERVACIONES PERSONALIZADAS (CORREGIDO)
     if observaciones:
         pdf.set_fill_color(245, 245, 245)
-        pdf.set_font("Arial", 'B', 10)
+        pdf.set_font("Arial", 'B', 8.5)
         pdf.set_text_color(0, 51, 102)
-        pdf.cell(0, 8, txt="  OBSERVACIONES Y NOTAS DE CAMPO", ln=True, fill=True)
-        pdf.ln(2)
-        pdf.set_font("Arial", '', 9)
+        pdf.cell(0, 5, txt="  OBSERVACIONES Y NOTAS DE CAMPO", ln=True, fill=True)
+        pdf.ln(1)
+        pdf.set_font("Arial", '', 8)
         pdf.set_text_color(50, 50, 50)
-        pdf.multi_cell(0, 5, txt=observaciones)
-        pdf.ln(5)
+        # Se mapea correctamente la variable 'observaciones' con límite seguro
+        pdf.multi_cell(0, 4, txt=observaciones[:450]) 
+        pdf.ln(3)
 
-    # 5. FIRMAS Y CONTACTO
-    pdf.set_y(-50)
-    pdf.set_font("Arial", 'B', 9)
-    pdf.cell(95, 10, txt="_______________________", ln=0, align='C')
-    pdf.cell(95, 10, txt="_______________________", ln=1, align='C')
-    pdf.cell(95, 5, txt="Asesor Técnico QCD", ln=0, align='C')
-    pdf.cell(95, 5, txt="Recibido Planta", ln=1, align='C')
+    # 5. BLOQUE DE FIRMAS Y CONTACTO (CON SALTO DE LÍNEA CORREGIDO)
+    pdf.set_y(-38) 
+    pdf.set_font("Arial", 'B', 8)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(95, 6, txt="_______________________", ln=0, align='C')
+    pdf.cell(95, 6, txt="_______________________", ln=1, align='C') # ln=1 para que pase a los textos
     
-    pdf.set_y(-25)
-    pdf.set_font("Arial", 'I', 8)
-    pdf.set_text_color(150, 150, 150)
-    pdf.cell(0, 5, txt=f"Contacto: {contacto}", ln=True, align='C')
-    pdf.cell(0, 5, txt="Este reporte es una guía técnica basada en condiciones estándar e ingeniería de lubricación.", ln=True, align='C')
+    pdf.cell(95, 4, txt="Asesor Técnico QCD", ln=0, align='C')
+    pdf.cell(95, 4, txt="Recibido Planta", ln=1, align='C')
+    
+    # Datos de ventas debajo del asesor
+    pdf.set_font("Arial", '', 7.5)
+    pdf.set_text_color(100, 100, 100)
+    pdf.cell(95, 3.5, txt="Ventas: 271 114 3337", ln=0, align='C')
+    pdf.cell(95, 3.5, txt="", ln=1)
+    pdf.cell(95, 3.5, txt="ventas.qcdmexico@gmail.com", ln=0, align='C')
+    
+    # Leyenda única de pie de página
+    pdf.set_y(-12)
+    pdf.set_font("Arial", 'I', 7)
+    pdf.cell(0, 4, txt=f"Contacto General: {contacto} | Guía técnica sujeta a condiciones operativas.", ln=True, align='C')
     
     return pdf.output(dest='S').encode('latin-1')
 
 # --- INTERFAZ STREAMLIT ---
 st.sidebar.header("Opciones de Contacto")
-info_contacto = st.sidebar.text_area("Datos pie de página:", "QCD DE MÉXICO | Amatlán de los Reyes, Ver. | ventas@qcdmexico.com")
+info_contacto = st.sidebar.text_area("Datos pie de página:", "QCD DE MÉXICO | Amatlán de los Reyes, Ver.")
 
 col1, col2 = st.columns(2)
 with col1:
@@ -186,14 +196,16 @@ with col2:
     st.markdown(f"<div style='background-color: {color}; color: white; padding: 10px; border-radius: 5px; font-weight: bold;'>{status}: {msg}</div>", unsafe_allow_html=True)
 
 st.divider()
+# Esta es la caja que alimenta las observaciones al generador del PDF
 obs = st.text_area("✍️ Observaciones adicionales para el reporte (Ej: Fuga detectada, ruido excesivo, etc.):")
 
 # --- GENERACIÓN Y DESCARGA ---
 h1_status = "SÍ (NSF H1)" if es_h1 else "NO"
+# Se pasa correctamente la variable 'obs' como último argumento
 pdf_data = generar_pdf_v2(equipo, rpm, temp, grado_nlgi, h1_status, g_cant, f_hrs, esp_a, esp_n, status, info_contacto, logo_exists, obs)
 
 st.download_button(
-    label="📥 DESCARGAR REPORTE PROFESIONAL V2",
+    label="📥 DESCARGAR REPORTE PROFESIONAL V2 (1 HOJA)",
     data=pdf_data,
     file_name=f"Reporte_Tecnico_QCD_{equipo}.pdf",
     mime="application/pdf"
